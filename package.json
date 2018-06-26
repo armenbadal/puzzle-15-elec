@@ -1,0 +1,9 @@
+{
+  "name": "puzzle-15-elec",
+  "version": "0.0.1",
+  "description": "Simple implementation of Puzzle15.",
+  "main": "main.js",
+  "author": "Armen Badalian",
+  "license": "ISC"
+}
+
