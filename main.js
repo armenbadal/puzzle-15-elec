@@ -21,7 +21,7 @@ const gameMenu = [
 ]
 
 const mainMenu = electron.Menu.buildFromTemplate(gameMenu)
-electron.Menu.setApplicationMenu(mainMenu)
+//electron.Menu.setApplicationMenu(mainMenu)
 
 let window = null
 

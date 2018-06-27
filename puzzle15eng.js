@@ -1,87 +1,120 @@
 
-// model of board
-var board = [
-	[0,  0,  0,  0,  0, 0],
-	[0,  1,  2,  3,  4, 0],
-	[0,  5,  6,  7,  8, 0],
-	[0,  9, 10, 11, 12, 0],
-	[0, 13, 14, 15, 16, 0],
-	[0,  0,  0,  0,  0, 0]]
+const events = require('events')
 
-var labels = {}
+// խաղի տրամաբանությունը
+var Puzzle15Engine = function(ee) {
+	// պատահարներ
+	this.evem = ee
 
-var steps = 0
+	// խաղատախտակի մոդելը
+	this.board = [
+		[0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0],
+		[0, 0, 0, 0, 0, 0]]
 
-//
-var randomIndex = function() {
-	return Math.floor((Math.random() * 4) + 1)
-}
-
-//
-var shuffle = function() {
-	for( let i = 0; i < 65; ++i ) {
-		let ro = randomIndex()
-		let co = randomIndex()
-		let ri = randomIndex()
-		let ci = randomIndex()
-
-		let et = board[co][ro]
-		board[co][ro] = board[ci][ri]
-		board[ci][ri] = et
+	// խառնել
+	let numbers = Array.from(new Array(15), (e, i) => 1 + i)
+	for( let i = 7; i < 15; ++i ) {
+		let j = Math.floor(Math.random() * 8)
+		let et = numbers[j]
+		numbers[j] = numbers[i]
+		numbers[i] = et
 	}
-}
 
-//
-var begin = function() {
-	shuffle()
-	
-	for( let r = 0; r < 4; ++r ) {
-		for( let c = 0; c < 4; ++c ) {
-			let sid = `r${r+1}c${c+1}`
-			labels[sid] = document.getElementById(sid)
-			let ex = board[c+1][r+1]
-			labels[sid].innerText = ex == 16 ? ' ' : ex
+	// ինվերսինաերի հաշվում 
+	let nvs = 0
+	for( let i = 0; i < numbers.length - 1; ++i ) {
+		for( let j = i + 1; j < numbers.length; ++j ) {
+			if( numbers[i] < numbers[j] ) ++nvs
 		}
 	}
+
+	// զույգության աստուգում
+	if( nvs % 2 == 0 ) {
+		let et = numbers[0]
+		numbers[0] = numbers[1]
+		numbers[1] = et
+	}
+
+	// դատարկ վանդակի արժեքը
+	numbers.push(16)
+
+	// գրանցել տախտակին
+	const indices = [1, 2, 3, 4]
+	let i = 0
+	for( let r of indices ) {
+		for( let c of indices ) {
+			this.board[r][c] = numbers[i++]
+			this.evem.emit('update', {r: r, c: c, v: this.board[r][c]})
+		}
+	}
+
+	// քայլերի քանակը
+	this.steps = 0	
 }
 
-//
-var isGameOver = function() {
-	return false
+// խաղը ավարտվա՞ծ է
+Puzzle15Engine.prototype.isGameOver = function() {
+	const indices = [1, 2, 3, 4]
+	let cnum = 0
+	for( let r of indices ) {
+		for( let c of indices ) {
+			if( this.board[r][c] != ++cnum ) {
+				return false
+			}
+		}
+	}
+	return true
 }
 
-//
-var blank = function(r, c) {
-	if( board[c-1][r] == 16 ) return { c: c-1, r: r }
-	if( board[c+1][r] == 16 ) return { c: c+1, r: r }
-	if( board[c][r-1] == 16 ) return { c: c, r: r-1 }
-	if( board[c][r+1] == 16 ) return { c: c, r: r+1 }
-
+// հարևան դատարկ վանդակը
+Puzzle15Engine.prototype.emptyNeighbor = function(r, c) {
+	if( 16 == this.board[r-1][c] ) return { r: r-1, c: c }
+	if( 16 == this.board[r+1][c] ) return { r: r+1, c: c }
+	if( 16 == this.board[r][c-1] ) return { r: r, c: c-1 }
+	if( 16 == this.board[r][c+1] ) return { r: r, c: c+1 }
 	return null
 }
 
-//
-var oneStep = function(r, c) {
-	let cb = blank(r, c)
-	if( cb == null ) return
+// մեկ քայլ
+Puzzle15Engine.prototype.oneStep = function(r, c) {
+	let enc = this.emptyNeighbor(r, c)
+	if( enc == null ) return
 
-	let et = board[c][r]
-	board[c][r] = board[cb.c][cb.r]
-	board[cb.c][cb.r] = et
-	
-	let co = labels[`r${r}c${c}`]
-	let ci = labels[`r${cb.r}c${cb.c}`]
+	let et = this.board[r][c]
+	this.board[r][c] = this.board[enc.r][enc.c]
+	this.board[enc.r][enc.c] = et
 
-	let st = co.innerText
-	co.innerText = ci.innerText
-	ci.innerText = st
+	this.evem.emit('update', {r: r, c: c, v: this.board[r][c]})
+	this.evem.emit('update', {r: enc.r, c: enc.c, v: this.board[enc.r][enc.c]})
 
-	++steps
-	
-	if( isGameOver() ) {
-		alert('Game Over.')
-	}
+	this.steps += 1
 }
 
 
+///
+var Puzzle15View = function(mels, ee) {
+	this.labels = mels
+
+	this.evem = ee
+
+	this.evem.on('update', (rcv) => {
+		let cid = `r${rcv.r}c${rcv.c}`
+		this.labels[cid].innerText = rcv.v == 16 ? '' : rcv.v
+	})
+}
+
+
+///
+var evem = null
+var game = null
+var view = null
+var newGame = function(mels) {
+	evem = new events.EventEmitter()
+	view = new Puzzle15View(mels, evem)
+	game = new Puzzle15Engine(evem)
+}
 
