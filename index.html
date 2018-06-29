@@ -3,29 +3,8 @@
 <head>
 	<title>Puzzle 15 (Electron)</title>
 	<link rel="stylesheet" href="puzzle15ui.css"/>
-	<script src="puzzle15eng.js"></script>
-	<script>
-		var collectLabels = function() {
-			let mels = {}
-			for( let r of [1, 2, 3, 4] ) {
-				for( let c of [1, 2, 3, 4] ) {
-					let cid = `r${r}c${c}`
-					mels[cid] = document.getElementById(cid)
-				}
-			}
-			return mels
-		}
-
-		var begin = function() {
-			newGame(collectLabels())
-		}
-
-		var oneStep = function(r, c) {
-			game.oneStep(r, c)
-		}
-	</script>
 </head>
-<body onload="begin()">
+<body onload="newGame()">
 	<div id="board">
 	<table>
 	  <tr>
@@ -54,6 +33,8 @@
 	  </tr>
 	</table>
 	</div>
+	
+	<script src="puzzle15eng.js"></script>
 </body>
 </html>
 

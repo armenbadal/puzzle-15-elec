@@ -1,11 +1,9 @@
 
-const events = require('events')
-
 // խաղի տրամաբանությունը
-var Puzzle15Engine = function(ee) {
-	// պատահարներ
-	this.evem = ee
-
+var Puzzle15Engine = function(mels) {
+	// տախտակի կոճակները
+	this.labels = mels
+	
 	// խաղատախտակի մոդելը
 	this.board = [
 		[0, 0, 0, 0, 0, 0],
@@ -48,12 +46,18 @@ var Puzzle15Engine = function(ee) {
 	for( let r of indices ) {
 		for( let c of indices ) {
 			this.board[r][c] = numbers[i++]
-			this.evem.emit('update', {r: r, c: c, v: this.board[r][c]})
+			this.update(r, c)
 		}
 	}
 
 	// քայլերի քանակը
 	this.steps = 0	
+}
+
+// թարմացնել կոճակը
+Puzzle15Engine.prototype.update = function(r, c) {
+	let vl = this.board[r][c]
+	this.labels[r-1][c-1].innerText = (vl == 16 ? '' : vl)
 }
 
 // խաղը ավարտվա՞ծ է
@@ -88,33 +92,43 @@ Puzzle15Engine.prototype.oneStep = function(r, c) {
 	this.board[r][c] = this.board[enc.r][enc.c]
 	this.board[enc.r][enc.c] = et
 
-	this.evem.emit('update', {r: r, c: c, v: this.board[r][c]})
-	this.evem.emit('update', {r: enc.r, c: enc.c, v: this.board[enc.r][enc.c]})
+	this.update(r, c)
+	this.update(enc.r, enc.c)
 
 	this.steps += 1
+
+	if( this.isGameOver() ) {
+		alert(`Դուք հաղթեցիք ${this.steps} քայլում։`)
+	}
 }
 
 
 ///
-var Puzzle15View = function(mels, ee) {
-	this.labels = mels
-
-	this.evem = ee
-
-	this.evem.on('update', (rcv) => {
-		let cid = `r${rcv.r}c${rcv.c}`
-		this.labels[cid].innerText = rcv.v == 16 ? '' : rcv.v
-	})
+var labels = [
+	[null, null, null, null],
+	[null, null, null, null],
+	[null, null, null, null],
+	[null, null, null, null]]
+for( let r of [1, 2, 3, 4] ) {
+	for( let c of [1, 2, 3, 4] ) {
+		let cid = `r${r}c${c}`
+		labels[r-1][c-1] = document.getElementById(cid)
+	}
 }
 
 
 ///
-var evem = null
 var game = null
-var view = null
-var newGame = function(mels) {
-	evem = new events.EventEmitter()
-	view = new Puzzle15View(mels, evem)
-	game = new Puzzle15Engine(evem)
+var newGame = function() {
+	game = new Puzzle15Engine(labels)
 }
 
+var oneStep = function(r, c) {
+	game.oneStep(r, c)
+}
+
+
+const ipc = require('electron').ipcRenderer
+ipc.on('new-game', () => { newGame() })
+
+	  

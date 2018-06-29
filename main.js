@@ -5,23 +5,31 @@ const app = electron.app
 
 const gameMenu = [
 	{
-		label: 'Game',
+		label: 'Խաղ',
 		submenu: [
 			{
-				label: 'New'
+				label: 'Նոր',
+				click: () => { window.webContents.send('new-game') }
 			},
 			{
 				type: 'separator'
 			},
 			{
-				label: 'Exit'
+				label: 'Ելք',
+				click: () => { app.quit() }
+			}
+		]
+	},
+	{
+		label: 'Յուշում',
+		submodule: [
+			{
+				label:'Ա'
 			}
 		]
 	}
 ]
 
-const mainMenu = electron.Menu.buildFromTemplate(gameMenu)
-//electron.Menu.setApplicationMenu(mainMenu)
 
 let window = null
 
@@ -31,6 +39,9 @@ app.on('ready', () => {
 	window = new electron.BrowserWindow()
 	window.loadURL('file://' + __dirname + '/index.html')
 
+	const mainMenu = electron.Menu.buildFromTemplate(gameMenu)
+	electron.Menu.setApplicationMenu(mainMenu)
+	
 	window.on('closed', () => { window = null })
 })
 
