@@ -22,7 +22,7 @@ const gameMenu = [
 	},
 	{
 		label: 'Յուշում',
-		submodule: [
+		submenu: [
 			{
 				label:'Ա'
 			}
@@ -36,7 +36,10 @@ let window = null
 app.on('window-all-closed', () => { app.quit() })
 
 app.on('ready', () => {
-	window = new electron.BrowserWindow()
+	window = new electron.BrowserWindow({
+		width: 440,
+		height: 480
+	})
 	window.loadURL('file://' + __dirname + '/index.html')
 
 	const mainMenu = electron.Menu.buildFromTemplate(gameMenu)

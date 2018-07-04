@@ -58,6 +58,7 @@ var Puzzle15Engine = function(mels) {
 Puzzle15Engine.prototype.update = function(r, c) {
 	let vl = this.board[r][c]
 	this.labels[r-1][c-1].innerText = (vl == 16 ? '' : vl)
+	this.labels[r-1][c-1].style.display = (vl == 16 ? 'none' : 'block')
 }
 
 // խաղը ավարտվա՞ծ է
