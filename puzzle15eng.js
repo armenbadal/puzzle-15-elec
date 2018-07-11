@@ -3,7 +3,15 @@
 var Puzzle15Engine = function(mels) {
 	// տախտակի կոճակները
 	this.labels = mels
-	
+	for( let r of [0, 1, 2, 3] ) {
+		for( let c of [0, 1, 2, 3] ) {
+			this.labels[r][c].addEventListener('click', (ev) => { 
+				const [id, r, c] = /r([1-4])c([1-4])/.exec(ev.target.id)
+				this.oneStep(parseInt(r), parseInt(c))
+			 })
+		}
+	}
+
 	// խաղատախտակի մոդելը
 	this.board = [
 		[0, 0, 0, 0, 0, 0],
@@ -112,11 +120,10 @@ var labels = [
 	[null, null, null, null]]
 for( let r of [1, 2, 3, 4] ) {
 	for( let c of [1, 2, 3, 4] ) {
-		let cid = `r${r}c${c}`
-		labels[r-1][c-1] = document.getElementById(cid)
+		labels[r-1][c-1] = document.getElementById(`r${r}c${c}`)
+		labels[r-1][c-1].className = 'w3-button w3-blue w3-border game-stone'
 	}
 }
-
 
 ///
 var game = null
@@ -124,12 +131,6 @@ var newGame = function() {
 	game = new Puzzle15Engine(labels)
 }
 
-var oneStep = function(r, c) {
-	game.oneStep(r, c)
-}
-
 
 const ipc = require('electron').ipcRenderer
 ipc.on('new-game', () => { newGame() })
-
-	  
