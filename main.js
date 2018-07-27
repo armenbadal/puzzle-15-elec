@@ -37,8 +37,9 @@ app.on('window-all-closed', () => { app.quit() })
 
 app.on('ready', () => {
 	window = new electron.BrowserWindow({
-		width: 440,
-		height: 480
+		width: 306,
+		height: 350,
+		resizable: false
 	})
 	window.loadURL('file://' + __dirname + '/index.html')
 
